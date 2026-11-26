@@ -5,7 +5,7 @@ import { Charging } from "@/components/charging";
 import { Shell } from "@/components/shell";
 import { useMarket } from "@/components/market-provider";
 import { continueHref } from "@/components/continue";
-import { authClient, signIn } from "@/lib/auth/client";
+import { authClient, signIn, signInWithGoogle } from "@/lib/auth/client";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -42,6 +42,15 @@ function LoginPage() {
     goAfter(user.email);
   }, [user, consumeIntent, navigate]);
 
+  function continueWithGoogle() {
+    setSocialError("");
+    setBusy("google");
+    void signInWithGoogle({ callbackURL: "/login" }).catch(() => {
+      setBusy("");
+      setSocialError("Google sign-in did not finish. Try again.");
+    });
+  }
+
   function continueWith(providerId: "grok-google" | "grok-x") {
     setSocialError("");
     setBusy(providerId);
@@ -59,13 +68,13 @@ function LoginPage() {
         <p className="mt-3 text-xs text-muted">Google and X use your real account. Email uses the password you created here.</p>
         {user ? <p className="mt-3 text-sm">You are signed in as {user.email}.</p> : null}
         <div className="mt-4 grid gap-2">
-          <button type="button" className="glow-hover min-h-11 rounded-md border border-border text-sm font-semibold" onClick={() => continueWith("grok-google")}>
+          <button type="button" className="glow-hover min-h-11 rounded-md border border-border text-sm font-semibold" onClick={continueWithGoogle}>
             Continue with Google
           </button>
           <button type="button" className="glow-hover min-h-11 rounded-md border border-border text-sm font-semibold" onClick={() => continueWith("grok-x")}>
             Continue with X
           </button>
-          {busy.startsWith("grok-") ? <Charging label="Signing in…" /> : null}
+          {busy === "google" || busy.startsWith("grok-") ? <Charging label="Signing in…" /> : null}
           {socialError ? <p className="text-sm text-danger" role="alert">{socialError}</p> : null}
         </div>
         <p className="my-4 text-center text-sm text-muted">or</p>

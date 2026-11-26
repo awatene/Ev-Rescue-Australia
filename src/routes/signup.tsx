@@ -5,7 +5,7 @@ import { Shell } from "@/components/shell";
 import { useMarket } from "@/components/market-provider";
 import { continueHref } from "@/components/continue";
 import { isAuPhone } from "@/lib/market/data";
-import { authClient, signIn } from "@/lib/auth/client";
+import { authClient, signIn, signInWithGoogle } from "@/lib/auth/client";
 import type { Role, User } from "@/lib/market/types";
 
 const PASSWORD_RULES = [
@@ -49,6 +49,15 @@ function SignupPage() {
     void navigate({ href: continueHref(intent) });
   }, [user, consumeIntent, navigate]);
 
+  function continueWithGoogle() {
+    setErrors([]);
+    setBusy("google");
+    void signInWithGoogle({ callbackURL: "/signup" }).catch(() => {
+      setBusy("");
+      setErrors(["Google sign-in did not finish. Try again."]);
+    });
+  }
+
   function continueWith(providerId: "grok-google" | "grok-x") {
     setErrors([]);
     setBusy(providerId);
@@ -65,13 +74,13 @@ function SignupPage() {
         <p className="mt-2 text-sm text-muted">Sign up to message sellers, see phone numbers, and place ads.</p>
         <p className="mt-3 text-xs text-muted">Google and X use your real account. Or create an email and password.</p>
         <div className="mt-4 grid gap-2">
-          <button type="button" className="glow-hover min-h-11 rounded-md border border-border text-sm font-semibold" onClick={() => continueWith("grok-google")}>
+          <button type="button" className="glow-hover min-h-11 rounded-md border border-border text-sm font-semibold" onClick={continueWithGoogle}>
             Continue with Google
           </button>
           <button type="button" className="glow-hover min-h-11 rounded-md border border-border text-sm font-semibold" onClick={() => continueWith("grok-x")}>
             Continue with X
           </button>
-          {busy.startsWith("grok-") ? <Charging label="Signing in…" /> : null}
+          {busy === "google" || busy.startsWith("grok-") ? <Charging label="Signing in…" /> : null}
         </div>
         <p className="my-4 text-center text-sm text-muted">or sign up with email</p>
         {errors.length ? (
