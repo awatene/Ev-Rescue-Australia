@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { hashPassword, verifyPassword } from "better-auth/crypto";
 import { getSql } from "@/lib/db";
+import { sendMail } from "./send-mail.server";
 
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
@@ -12,7 +13,7 @@ function temporaryPassword() {
 
 export const sendTemporaryPassword = createServerFn({ method: "POST" })
   .validator((email: string) => email.trim().toLowerCase())
-  .handler(async ({ data: email }): Promise<{ password: string } | { error: string }> => {
+  .handler(async ({ data: email }): Promise<{ ok: true } | { error: string }> => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "Enter a valid email address." };
     const sql = await getSql();
     const users = await sql<{ id: string }>`select id from "user" where lower(email) = ${email} limit 1`;
@@ -20,10 +21,11 @@ export const sendTemporaryPassword = createServerFn({ method: "POST" })
     if (!user) return { error: "No account uses that email. Create one first." };
     const password = temporaryPassword();
     const hashed = await hashPassword(password);
-    const accounts = await sql<{ id: string }>`
-      select id from "account" where "userId" = ${user.id} and "providerId" = 'credential' limit 1
+    const accounts = await sql<{ id: string; password: string | null }>`
+      select id, password from "account" where "userId" = ${user.id} and "providerId" = 'credential' limit 1
     `;
     const account = accounts[0];
+    const previous = account?.password ?? null;
     if (account) {
       await sql`update "account" set password = ${hashed}, "updatedAt" = now() where id = ${account.id}`;
     } else {
@@ -33,12 +35,35 @@ export const sendTemporaryPassword = createServerFn({ method: "POST" })
         values (${id}, ${user.id}, 'credential', ${user.id}, ${hashed}, now(), now())
       `;
     }
+    try {
+      await sendMail({
+        to: email,
+        subject: "Your EV Rescue temporary password",
+        text: [
+          "A temporary password was requested for your EV Rescue Australia account.",
+          "",
+          `Temporary password: ${password}`,
+          "",
+          "Sign in at https://www.ev-rescue-au.com.au/login",
+          "Then open your profile and choose a new password.",
+          "",
+          "If you did not ask for this, email admin@ev-rescue-au.com.au.",
+        ].join("\n"),
+      });
+    } catch {
+      if (account && previous) {
+        await sql`update "account" set password = ${previous}, "updatedAt" = now() where id = ${account.id}`;
+      } else if (!account) {
+        await sql`delete from "account" where "userId" = ${user.id} and "providerId" = 'credential'`;
+      }
+      return { error: "The reset email could not be sent. Try again in a few minutes." };
+    }
     await sql`delete from "session" where "userId" = ${user.id}`;
     await sql`
       insert into temp_passwords (email) values (${email})
       on conflict (email) do update set created_at = now()
     `;
-    return { password };
+    return { ok: true };
   });
 
 export const needsTemporaryPassword = createServerFn({ method: "POST" })
