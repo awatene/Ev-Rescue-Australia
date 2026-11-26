@@ -50,13 +50,13 @@ export const sendTemporaryPassword = createServerFn({ method: "POST" })
           "If you did not ask for this, email admin@ev-rescue-au.com.au.",
         ].join("\n"),
       });
-    } catch {
+    } catch (err) {
       if (account && previous) {
         await sql`update "account" set password = ${previous}, "updatedAt" = now() where id = ${account.id}`;
       } else if (!account) {
         await sql`delete from "account" where "userId" = ${user.id} and "providerId" = 'credential'`;
       }
-      return { error: "The reset email could not be sent. Try again in a few minutes." };
+      return { error: mailFailure(err) };
     }
     await sql`delete from "session" where "userId" = ${user.id}`;
     await sql`
@@ -126,4 +126,12 @@ async function passwordMatches(email: string, password: string) {
 
 function passwordStrong(value: string) {
   return value.length >= 8 && /[A-Z]/.test(value) && /[a-z]/.test(value) && /\d/.test(value);
+}
+
+function mailFailure(err: unknown) {
+  const message = err instanceof Error ? err.message : "";
+  if (!message || message.includes("RESEND_API_KEY is not set")) {
+    return "The email key is missing on the live site. In Vercel the secret must be named RESEND_API_KEY.";
+  }
+  return `The reset email could not be sent. ${message.replace(/re_[A-Za-z0-9_]+/g, "re_hidden")}`;
 }
