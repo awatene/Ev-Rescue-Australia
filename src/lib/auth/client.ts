@@ -153,14 +153,34 @@ export async function signIn(
 }
 
 /**
- * Google on the public site. The live preview still uses the Grok broker.
- * Deployed sign-in redirects to Google and back to `/api/auth/callback/google`.
+ * Better Auth social provider ids that this app can start directly.
+ * The live preview still federates through the broker (`DIRECT_BROKER_ID`).
+ * On the public site the redirect returns to `/api/auth/callback/<provider>`
+ * on this origin — the same callback shape as the broker's
+ * `https://auth.grok.me/api/auth/callback/twitter`, with provider ids
+ * `google`, `apple`, and `facebook`.
  */
-export async function signInWithGoogle(
+export const DIRECT_BROKER_ID = {
+  google: "grok-google",
+  apple: "grok-apple",
+  facebook: "grok-facebook",
+} as const;
+
+export type DirectSocialProvider = keyof typeof DIRECT_BROKER_ID;
+
+/**
+ * Google, Apple, or Facebook.
+ *
+ * Live preview (`*.grok-sandbox.com`) uses the Grok broker. Everywhere else
+ * (including the Vercel site) redirects to that provider and back to
+ * `/api/auth/callback/<provider>` using this app's own client credentials.
+ */
+export async function signInWithProvider(
+  provider: DirectSocialProvider,
   opts: { callbackURL?: string; errorCallbackURL?: string } = {},
 ): Promise<void> {
   if (inLivePreview()) {
-    await signIn("grok-google", opts);
+    await signIn(DIRECT_BROKER_ID[provider], opts);
     return;
   }
   const callbackURL = opts.callbackURL ?? "/";
@@ -172,7 +192,7 @@ export async function signInWithGoogle(
     clearToken: () => setBearerToken(null),
   });
   const { data, error } = await authClient.signIn.social({
-    provider: "google",
+    provider,
     callbackURL,
     errorCallbackURL,
   });
