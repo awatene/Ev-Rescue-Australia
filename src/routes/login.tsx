@@ -3,9 +3,10 @@ import { useEffect, useState } from "react";
 import { Charging } from "@/components/charging";
 import { PasswordInput } from "@/components/password-input";
 import { Shell } from "@/components/shell";
+import { SocialAuthButtons } from "@/components/social-auth-buttons";
 import { useMarket } from "@/components/market-provider";
 import { continueHref } from "@/components/continue";
-import { authClient, signIn, signInWithGoogle } from "@/lib/auth/client";
+import { authClient } from "@/lib/auth/client";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -41,39 +42,15 @@ function LoginPage() {
     goAfter(user.email);
   }, [user, consumeIntent, navigate]);
 
-  function continueWithGoogle() {
-    setSocialError("");
-    setBusy("google");
-    void signInWithGoogle({ callbackURL: "/login" }).catch(() => {
-      setBusy("");
-      setSocialError("Google sign-in did not finish. Try again.");
-    });
-  }
-
-  function continueWith(providerId: "grok-google" | "grok-x") {
-    setSocialError("");
-    setBusy(providerId);
-    void signIn(providerId, { callbackURL: "/login" }).catch(() => {
-      setBusy("");
-      setSocialError("Sign-in did not finish. Allow pop-ups and try again.");
-    });
-  }
-
   return (
     <Shell>
       <main className="mx-auto max-w-md px-4 py-10">
         <h1 className="text-3xl font-extrabold">Sign in</h1>
         <p className="mt-2 text-sm text-muted">Log in to message sellers, see workshop contact details, and place ads.</p>
-        <p className="mt-3 text-xs text-muted">Google and X use your real account. Email uses the password you created here.</p>
+        <p className="mt-3 text-xs text-muted">Google, Apple, Facebook, and X use your real account. Email uses the password you created here.</p>
         {user ? <p className="mt-3 text-sm">You are signed in as {user.email}.</p> : null}
         <div className="mt-4 grid gap-2">
-          <button type="button" className="glow-hover min-h-11 rounded-md border border-border text-sm font-semibold" onClick={continueWithGoogle}>
-            Continue with Google
-          </button>
-          <button type="button" className="glow-hover min-h-11 rounded-md border border-border text-sm font-semibold" onClick={() => continueWith("grok-x")}>
-            Continue with X
-          </button>
-          {busy === "google" || busy.startsWith("grok-") ? <Charging label="Signing in…" /> : null}
+          <SocialAuthButtons callbackURL="/login" busy={busy} onBusy={setBusy} onError={setSocialError} />
           {socialError ? <p className="text-sm text-danger" role="alert">{socialError}</p> : null}
         </div>
         <p className="my-4 text-center text-sm text-muted">or</p>

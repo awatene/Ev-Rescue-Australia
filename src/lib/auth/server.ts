@@ -38,6 +38,7 @@ import { Pool } from "pg";
 import { ensureDbReady, getPglite } from "../db";
 import { emailAndPasswordEnabled } from "./email-password";
 import { GATE_PROVIDER_ID, gateIdentitySessions } from "./gate-session.server";
+import { appleClientSecret, appleSignInConfigured } from "./apple-client-secret";
 import { GROK_PROVIDERS, profileImageFrom } from "./providers";
 import { pgliteDialect } from "./pglite-dialect";
 import {
@@ -179,6 +180,15 @@ const grokOAuthPlugin = authConfigured
 
 const googleClientId = env("GOOGLE_CLIENT_ID");
 const googleClientSecret = env("GOOGLE_CLIENT_SECRET");
+const facebookClientId = env("FACEBOOK_CLIENT_ID");
+const facebookClientSecret = env("FACEBOOK_CLIENT_SECRET");
+const appleConfigured = appleSignInConfigured();
+const facebookConfigured = Boolean(facebookClientId && facebookClientSecret);
+const directSocialConfigured = Boolean((googleClientId && googleClientSecret) || appleConfigured || facebookConfigured);
+
+// Apple's callback is a form POST from appleid.apple.com. Better Auth rejects
+// that origin unless it is trusted.
+if (appleConfigured) trustedOrigins.push("https://appleid.apple.com");
 
 export const auth = betterAuth({
   baseURL,
@@ -204,6 +214,8 @@ export const auth = betterAuth({
       enabled: true,
       trustedProviders: [
         "google",
+        "apple",
+        "facebook",
         ...GROK_PROVIDERS.map((p) => p.providerId),
         GATE_PROVIDER_ID,
       ],
@@ -222,16 +234,43 @@ export const auth = betterAuth({
   // Local email/password — toggled only via `./email-password` (not a plugin).
   ...(emailAndPasswordEnabled ? { emailAndPassword: { enabled: true } } : {}),
 
-  // Direct Google login for the public site. The Grok broker cannot issue a
-  // client for a self-hosted domain, so www uses Google's own OAuth client.
-  ...(googleClientId && googleClientSecret
+  // Direct Google, Apple, and Facebook for the public site. The Grok broker
+  // cannot issue a client for a self-hosted domain, so www uses each
+  // provider's own OAuth client. Provider ids match the broker (`google`,
+  // `apple`, `facebook`; X remains `twitter` and stays on the broker).
+  // Callbacks: `/api/auth/callback/<provider>` on BETTER_AUTH_URL.
+  ...(directSocialConfigured
     ? {
         socialProviders: {
-          google: {
-            clientId: googleClientId,
-            clientSecret: googleClientSecret,
-            prompt: "select_account",
-          },
+          ...(googleClientId && googleClientSecret
+            ? {
+                google: {
+                  clientId: googleClientId,
+                  clientSecret: googleClientSecret,
+                  prompt: "select_account" as const,
+                },
+              }
+            : {}),
+          ...(appleConfigured
+            ? {
+                apple: async () => {
+                  const clientId = env("APPLE_CLIENT_ID");
+                  const clientSecret = await appleClientSecret();
+                  if (!clientId || !clientSecret) {
+                    throw new Error("Apple sign-in is missing APPLE_CLIENT_ID or a client secret.");
+                  }
+                  return { clientId, clientSecret };
+                },
+              }
+            : {}),
+          ...(facebookConfigured
+            ? {
+                facebook: {
+                  clientId: facebookClientId as string,
+                  clientSecret: facebookClientSecret as string,
+                },
+              }
+            : {}),
         },
       }
     : {}),
