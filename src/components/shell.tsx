@@ -294,6 +294,7 @@ export function SiteFooter() {
           <Link to="/workshops">Services</Link>
           <Link to="/" hash="longevity">Longevity</Link>
           <Link to="/terms">Terms</Link>
+          <Link to="/data-deletion">Delete your data</Link>
         </div>
       </div>
       <div className="border-t border-border">

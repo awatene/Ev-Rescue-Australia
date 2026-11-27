@@ -44,7 +44,7 @@ function TermsPage() {
         <section className="mt-8 space-y-3 text-sm">
           <h2 className="text-xl font-bold">Privacy</h2>
           <p>We keep the details you give us so the site can work: your name, email, seller type, profile picture, ads and messages. Your name and picture can show on your ads and in the inbox. A phone number is only stored for a workshop ad.</p>
-          <p>Messages stay on EV Rescue. They are not emailed to the other member. A Help message, and a note when an ad is held for checking, is sent to {SITE_EMAIL}. We do not sell your details. You can change your profile, or delete an ad, while you are signed in.</p>
+          <p>Messages stay on EV Rescue. They are not emailed to the other member. A Help message, and a note when an ad is held for checking, is sent to {SITE_EMAIL}. We do not sell your details. You can change your profile, or delete an ad, while you are signed in. To delete the whole account, including a Facebook sign-in, use <Link to="/data-deletion" className="text-accent underline">Delete your data</Link>.</p>
         </section>
 
         <section className="mt-8 space-y-3 text-sm">

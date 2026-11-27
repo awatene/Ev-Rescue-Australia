@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as CarsRouteImport } from './routes/cars'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as DataDeletionRouteImport } from './routes/data-deletion'
 import { Route as EbikesRouteImport } from './routes/ebikes'
 import { Route as ForgotRouteImport } from './routes/forgot'
 import { Route as InboxRouteImport } from './routes/inbox'
@@ -45,6 +46,11 @@ const CarsRoute = CarsRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DataDeletionRoute = DataDeletionRouteImport.update({
+  id: '/data-deletion',
+  path: '/data-deletion',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EbikesRoute = EbikesRouteImport.update({
@@ -118,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRoute
   '/cars': typeof CarsRoute
   '/contact': typeof ContactRoute
+  '/data-deletion': typeof DataDeletionRoute
   '/ebikes': typeof EbikesRoute
   '/forgot': typeof ForgotRoute
   '/inbox': typeof InboxRoute
@@ -137,6 +144,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminRoute
   '/cars': typeof CarsRoute
   '/contact': typeof ContactRoute
+  '/data-deletion': typeof DataDeletionRoute
   '/ebikes': typeof EbikesRoute
   '/forgot': typeof ForgotRoute
   '/inbox': typeof InboxRoute
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/cars': typeof CarsRoute
   '/contact': typeof ContactRoute
+  '/data-deletion': typeof DataDeletionRoute
   '/ebikes': typeof EbikesRoute
   '/forgot': typeof ForgotRoute
   '/inbox': typeof InboxRoute
@@ -178,6 +187,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/cars'
     | '/contact'
+    | '/data-deletion'
     | '/ebikes'
     | '/forgot'
     | '/inbox'
@@ -197,6 +207,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/cars'
     | '/contact'
+    | '/data-deletion'
     | '/ebikes'
     | '/forgot'
     | '/inbox'
@@ -216,6 +227,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/cars'
     | '/contact'
+    | '/data-deletion'
     | '/ebikes'
     | '/forgot'
     | '/inbox'
@@ -236,6 +248,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   CarsRoute: typeof CarsRoute
   ContactRoute: typeof ContactRoute
+  DataDeletionRoute: typeof DataDeletionRoute
   EbikesRoute: typeof EbikesRoute
   ForgotRoute: typeof ForgotRoute
   InboxRoute: typeof InboxRoute
@@ -279,6 +292,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/data-deletion': {
+      id: '/data-deletion'
+      path: '/data-deletion'
+      fullPath: '/data-deletion'
+      preLoaderRoute: typeof DataDeletionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ebikes': {
@@ -380,6 +400,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   CarsRoute: CarsRoute,
   ContactRoute: ContactRoute,
+  DataDeletionRoute: DataDeletionRoute,
   EbikesRoute: EbikesRoute,
   ForgotRoute: ForgotRoute,
   InboxRoute: InboxRoute,
