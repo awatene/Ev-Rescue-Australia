@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Charging } from "@/components/charging";
+import { PasswordInput } from "@/components/password-input";
 import { Shell } from "@/components/shell";
 import { useMarket } from "@/components/market-provider";
 import { continueHref } from "@/components/continue";
@@ -210,18 +211,19 @@ function Field({
   placeholder?: string;
   invalid?: boolean;
 }) {
+  const className = `min-h-11 w-full rounded-md border bg-bg px-3 ${invalid ? "border-danger" : "border-border"}`;
+  const shared = {
+    autoComplete,
+    placeholder,
+    "aria-invalid": invalid || undefined,
+    className,
+    value,
+    onChange: (event: { target: { value: string } }) => onChange(event.target.value),
+  };
   return (
     <label className="text-sm">
       <span className="mb-1 block font-medium">{label}</span>
-      <input
-        type={type}
-        autoComplete={autoComplete}
-        placeholder={placeholder}
-        aria-invalid={invalid || undefined}
-        className={`min-h-11 w-full rounded-md border bg-bg px-3 ${invalid ? "border-danger" : "border-border"}`}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-      />
+      {type === "password" ? <PasswordInput {...shared} /> : <input type={type} {...shared} />}
     </label>
   );
 }
