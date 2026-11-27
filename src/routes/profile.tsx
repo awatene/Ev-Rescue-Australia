@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
+import { PasswordInput } from "@/components/password-input";
 import { Shell } from "@/components/shell";
 import { useMarket } from "@/components/market-provider";
 import { checkTemporaryPassword, needsTemporaryPassword, replaceTemporaryPassword } from "@/lib/auth/temp-password";
@@ -336,8 +337,7 @@ function ChangePassword({ email }: { email: string }) {
         >
           <label className="text-sm">
             <span className="mb-1 block font-medium">Temporary password</span>
-            <input
-              type="password"
+            <PasswordInput
               autoComplete="current-password"
               className="min-h-11 w-full rounded-md border border-border bg-bg px-3"
               value={current}
@@ -375,8 +375,7 @@ function ChangePassword({ email }: { email: string }) {
         >
           <label className="text-sm">
             <span className="mb-1 block font-medium">New password</span>
-            <input
-              type="password"
+            <PasswordInput
               autoComplete="new-password"
               className={`min-h-11 w-full rounded-md border bg-bg px-3 ${next.length > 0 && !ready ? "border-danger" : "border-border"}`}
               value={next}
@@ -395,8 +394,7 @@ function ChangePassword({ email }: { email: string }) {
           </ul>
           <label className="text-sm">
             <span className="mb-1 block font-medium">Confirm password</span>
-            <input
-              type="password"
+            <PasswordInput
               autoComplete="new-password"
               className={`min-h-11 w-full rounded-md border bg-bg px-3 ${confirm.length > 0 && confirm !== next ? "border-danger" : "border-border"}`}
               value={confirm}

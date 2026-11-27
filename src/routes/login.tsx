@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
 import { Charging } from "@/components/charging";
+import { PasswordInput } from "@/components/password-input";
 import { Shell } from "@/components/shell";
 import { useMarket } from "@/components/market-provider";
 import { continueHref } from "@/components/continue";
@@ -18,7 +18,6 @@ function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [socialError, setSocialError] = useState("");
   const [busy, setBusy] = useState("");
@@ -133,23 +132,12 @@ function LoginPage() {
           </label>
           <label className="text-sm">
             <span className="mb-1 block font-medium">Password</span>
-            <span className="relative block">
-              <input
-                type={showPassword ? "text" : "password"}
-                autoComplete="current-password"
-                className="min-h-11 w-full rounded-md border border-border bg-bg px-3 pr-12"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-              />
-              <button
-                type="button"
-                className="absolute top-0 right-0 flex min-h-11 min-w-11 items-center justify-center text-muted"
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                onClick={() => setShowPassword((open) => !open)}
-              >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-              </button>
-            </span>
+            <PasswordInput
+              autoComplete="current-password"
+              className="min-h-11 w-full rounded-md border border-border bg-bg px-3"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
           </label>
           <button type="button" className="text-left text-sm font-semibold text-accent" onClick={() => void navigate({ to: "/forgot" })}>
             Forgot password?
